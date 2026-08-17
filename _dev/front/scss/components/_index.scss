@@ -16,11 +16,10 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
-@import '_variables';
-@import '_modal';
-@import '_product';
-@import '_footer-links';
-@import '_rtl';
-
-@import "components";
-@import "container";
+@import "add-to-wishlist";
+@import "button";
+@import "choose-list";
+@import "list";
+@import "pagination";
+@import "product";
+@import "toast";

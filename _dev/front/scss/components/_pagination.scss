@@ -16,11 +16,26 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
-@import '_variables';
-@import '_modal';
-@import '_product';
-@import '_footer-links';
-@import '_rtl';
+.wishlist {
+  &-pagination {
+    .previous {
+      margin-right: 1.875rem;
+    }
 
-@import "components";
-@import "container";
+    .js-wishlist-search-link {
+      cursor: pointer;
+
+      &:not([href]):not([tabindex]):hover {
+        color: $blue;
+      }
+
+      &.disabled {
+        cursor: inherit;
+
+        &:hover {
+          color: $blue;
+        }
+      }
+    }
+  }
+}

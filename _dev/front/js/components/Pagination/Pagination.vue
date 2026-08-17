@@ -57,31 +57,3 @@
     },
   };
 </script>
-
-<style lang="scss" type="text/scss">
-  @import '@scss/_variables';
-
-  .wishlist {
-    &-pagination {
-      .previous {
-        margin-right: 1.875rem;
-      }
-
-      .js-wishlist-search-link {
-        cursor: pointer;
-
-        &:not([href]):not([tabindex]):hover {
-          color: $blue;
-        }
-
-        &.disabled {
-          cursor: inherit;
-
-          &:hover {
-            color: $blue;
-          }
-        }
-      }
-    }
-  }
-</style>
