@@ -38,10 +38,10 @@ module.exports = {
     wishlistUrl: 'wishlistUrl',
   },
   entry: {
-    // Główne pliki skryptów i stylów dla frontu (jQuery) 
+    // Główne pliki skryptów i stylów dla frontu (jQuery)
     wishlist: [
       './_dev/front/js/wishlist.js',
-      './_dev/front/scss/common.scss'
+      './_dev/front/scss/common.scss',
     ],
     // Zaplecze sklepu
     backoffice: [
