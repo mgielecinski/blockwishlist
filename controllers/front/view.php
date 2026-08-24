@@ -243,7 +243,7 @@ class BlockWishlistViewModuleFrontController extends ProductListingFrontControll
         ];
 
         $data = array_merge($data, $searchVariables);
-        
+
         $rendered_products = $this->context->smarty->fetch('module:blockwishlist/views/templates/front/_partials/products.tpl', ['listing' => $data]);
         $data['rendered_products'] = $rendered_products;
 

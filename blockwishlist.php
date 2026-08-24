@@ -174,7 +174,6 @@ class BlockWishList extends Module
                 'priority' => 190,
                 ]
             );
-            
         }
     }
 

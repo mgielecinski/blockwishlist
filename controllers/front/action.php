@@ -381,7 +381,8 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
         );
     }
 
-    private function getSelectWishlistModalAction() {
+    private function getSelectWishlistModalAction()
+    {
         $wishlists = WishList::getAllWishListsByIdCustomer($this->context->customer->id);
         if (empty($wishlists)) {
             $wishlist = new WishList();
