@@ -27,11 +27,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="wishlist-list-simple">
-          {if isset($wishlists)}
-            {include file="module:blockwishlist/views/templates/front/_partials/wishlist-list-simple.tpl" wishlists=$wishlists}
-          {/if}
-        </div>
+        <div class="wishlist-list-simple"></div>
       </div>
       <div class="modal-footer">
         <a id="wishlist-create-and-add-product" class="wishlist-add-to-new text-primary"><i class="material-icons">add_circle_outline</i> {$newWishlistCTA}</a>

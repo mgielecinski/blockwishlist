@@ -67,6 +67,11 @@ class BlockWishlistListsModuleFrontController extends ModuleFrontController
         return $wishlists;
     }
 
+    private function generateWishListToken()
+    {
+        return strtoupper(substr(sha1(uniqid((string) rand(), true) . _COOKIE_KEY_ . $this->context->customer->id), 0, 16));
+    }
+
     public function getBreadcrumbLinks()
     {
         $breadcrumb = parent::getBreadcrumbLinks();
