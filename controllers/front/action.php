@@ -189,7 +189,6 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
 
     private function renameWishListAction($params)
     {
-        Tools::getValue('params');
         if (!isset($params['idWishList'], $params['name'])) {
             return $this->ajaxRenderMissingParams();
         }
@@ -240,7 +239,7 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
 
     private function deleteWishListAction($params)
     {
-        if (isset($params['idWishList'])) {
+        if (!isset($params['idWishList'])) {
             return $this->ajaxRenderMissingParams();
         }
 
@@ -268,11 +267,11 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
 
     private function deleteProductFromWishListAction($params)
     {
-        if (
-            !isset($params['idWishList']) &&
-            !isset($params['id_product']) &&
-            !isset($params['id_product_attribute'])
-        ) {
+        if (!isset(
+            $params['idWishList'],
+            $params['id_product'],
+            $params['id_product_attribute']
+        )) {
             return $this->ajaxRenderMissingParams();
         }
 
@@ -429,18 +428,6 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
             json_encode([
                 'success' => false,
                 'message' => $this->trans('Error when adding product to cart', [], 'Modules.Blockwishlist.Shop'),
-            ])
-        );
-    }
-
-    private function getUrlByIdWishListAction($params)
-    {
-        $wishlist = new WishList((int) $params['idWishList']);
-
-        return $this->ajaxRender(
-            json_encode([
-                'status' => 'true',
-                'url' => $this->context->link->getModuleLink('blockwishlist', 'view', ['token' => $wishlist->token]),
             ])
         );
     }
