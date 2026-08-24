@@ -16,18 +16,38 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
-@import '_variables';
-@import '_modal';
-@import '_product';
-@import '_footer-links';
-@import '_rtl';
+ .wishlist {
+  &-add-to-new {
+    cursor: pointer;
+    transition: 0.2s ease-out;
+    font-size: 0.875rem;
+    letter-spacing: 0;
+    line-height: 1rem;
+    border: none;
+    background: none;
 
-//@import "components";
-//@import "container";
+    &:hover {
+      opacity: 0.7;
+    }
 
-@import '_button';
-@import '_toast';
-@import '_add-to-wishlist';
-@import '_choose-list';
-@import '_wishlist_product';
-@import '_migration';
+    i {
+      margin-right: 0.3125rem;
+      vertical-align: middle;
+      color: $blue;
+      margin-top: -0.125rem;
+      font-size: 1.25rem;
+    }
+  }
+
+  &-add-to {
+    .modal {
+      &-body {
+        padding: 0;
+      }
+
+      &-footer {
+        text-align: left;
+      }
+    }
+  }
+}

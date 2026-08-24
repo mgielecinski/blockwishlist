@@ -1,4 +1,4 @@
-/**
+{**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -15,19 +15,12 @@
  * @author    PrestaShop SA and Contributors <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
- */
-@import '_variables';
-@import '_modal';
-@import '_product';
-@import '_footer-links';
-@import '_rtl';
+ *}
 
-//@import "components";
-//@import "container";
-
-@import '_button';
-@import '_toast';
-@import '_add-to-wishlist';
-@import '_choose-list';
-@import '_wishlist_product';
-@import '_migration';
+<ul class="wishlist-list-simple" aria-label="{l s='Select wishlist' d='Modules.Blockwishlist.Shop'}">
+  {foreach from=$wishlists item=wishlist}
+    <li class="wishlist-list-item">
+      <button type="button" class="wishlist__btn" data-ps-wishlist-id="{$wishlist.id_wishlist}">{$wishlist.name}</button>
+    </li>
+  {/foreach}
+</ul>

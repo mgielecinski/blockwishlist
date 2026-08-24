@@ -16,14 +16,7 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  *}
-<div
-  class="wishlist-button"
-  data-url="{$url}"
-  data-product-id="{$product.id}"
-  data-product-attribute-id="{$product.id_product_attribute}"
-  data-is-logged="{$customer.is_logged}"
-  data-list-id="1"
-  data-checked="true"
-  data-is-product="true"
-></div>
 
+<button class="wishlist-button-add wishlist-button-product" data-ps-product-id="{$product.id}" data-ps-product-attribute-id="{$product.id_product_attribute}">
+  <i class="material-icons">favorite_border</i>
+</button>

@@ -36,20 +36,35 @@ class BlockWishlistListsModuleFrontController extends ModuleFrontController
               'accountLink' => '#',
               'wishlistsTitlePage' => Configuration::get('blockwishlist_WishlistPageName', $this->context->language->id),
               'newWishlistCTA' => Configuration::get('blockwishlist_CreateButtonLabel', $this->context->language->id),
+              'wishlists' => $this->getAllWishList(),
           ]
         );
 
-        if ($this->context->controller instanceof FrontController) {
-            $this->context->controller->registerJavascript(
-              'blockwishlistController',
-              'modules/blockwishlist/public/wishlistcontainer.bundle.js',
-              [
-                'priority' => 200,
-              ]
-            );
+        $this->setTemplate('module:blockwishlist/views/templates/front/lists.tpl');
+    }
+
+    private function getAllWishList()
+    {
+        $wishlists = WishList::getAllWishListsByIdCustomer($this->context->customer->id);
+        if (empty($wishlists)) {
+            $wishlist = new WishList();
+            $wishlist->id_shop = $this->context->shop->id;
+            $wishlist->id_shop_group = $this->context->shop->id_shop_group;
+            $wishlist->id_customer = $this->context->customer->id;
+            $wishlist->name = Configuration::get('blockwishlist_WishlistDefaultTitle', $this->context->language->id);
+            $wishlist->token = $this->generateWishListToken();
+            $wishlist->default = 1;
+            $wishlist->add();
+
+            $wishlists = WishList::getAllWishListsByIdCustomer($this->context->customer->id);
         }
 
-        $this->setTemplate('module:blockwishlist/views/templates/pages/lists.tpl');
+        foreach ($wishlists as $key => $wishlist) {
+            $wishlists[$key]['shareUrl'] = $this->context->link->getModuleLink('blockwishlist', 'view', ['token' => $wishlist['token']]);
+            $wishlists[$key]['listUrl'] = $this->context->link->getModuleLink('blockwishlist', 'view', ['id_wishlist' => $wishlist['id_wishlist']]);
+        }
+
+        return $wishlists;
     }
 
     public function getBreadcrumbLinks()

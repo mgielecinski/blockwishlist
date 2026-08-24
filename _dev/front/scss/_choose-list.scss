@@ -16,18 +16,39 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
-@import '_variables';
-@import '_modal';
-@import '_product';
-@import '_footer-links';
-@import '_rtl';
+  .wishlist-list-simple {
+    max-height: 55vh;
+    overflow-y: auto;
+    border-top: 1px solid #e5e5e5;
+    border-bottom: 1px solid #e5e5e5;
+    margin: 0;
 
-//@import "components";
-//@import "container";
+    &-empty {
+      font-size: 30;
+      text-align: center;
+      padding: 30px;
+      padding-bottom: 1.25rem;
+      font-weight: bold;
+      color: #000;
+    }
 
-@import '_button';
-@import '_toast';
-@import '_add-to-wishlist';
-@import '_choose-list';
-@import '_wishlist_product';
-@import '_migration';
+    & .wishlist-list-item {
+      padding: 0.875rem 0;
+      transition: 0.25s ease-out;
+      cursor: pointer;
+      margin-bottom: 0;
+
+      &:hover {
+        background: lighten($blue, 45%);
+      }
+
+      p {
+        font-size: 0.875rem;
+        letter-spacing: 0;
+        color: #232323;
+        margin-bottom: 0;
+        line-height: 1rem;
+        padding: 0 2.5rem;
+      }
+    }
+  }

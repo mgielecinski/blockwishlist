@@ -148,14 +148,13 @@ class BlockWishList extends Module
             : false;
 
         Media::addJsDef([
-            'blockwishlistController' => $this->context->link->getModuleLink(
-                $this->name,
-                'action'
-            ),
+            'blockwishlistController' => $this->context->link->getModuleLink('blockwishlist', 'action'),
             'removeFromWishlistUrl' => $this->context->link->getModuleLink('blockwishlist', 'action', ['action' => 'deleteProductFromWishlist']),
             'wishlistUrl' => $this->context->link->getModuleLink('blockwishlist', 'view'),
             'wishlistAddProductToCartUrl' => $this->context->link->getModuleLink('blockwishlist', 'action', ['action' => 'addProductToCart']),
             'productsAlreadyTagged' => $productsTagged ?: [],
+            'getAllWishlistUrl' => $this->context->link->getModuleLink('blockwishlist', 'action', ['action' => 'getAllWishlist']),
+            'deleteWishlistUrl' => $this->context->link->getModuleLink('blockwishlist', 'action', ['action' => 'deleteWishlist']),
         ]);
 
         if ($this->context->controller instanceof FrontController) {
@@ -169,28 +168,13 @@ class BlockWishList extends Module
             );
 
             $this->context->controller->registerJavascript(
-                'blockwishlistController',
-                'modules/' . $this->name . '/public/product.bundle.js',
-                [
-                'priority' => 100,
-                ]
-            );
-
-            $this->context->controller->registerJavascript(
-                'blockwishlistGraphql',
-                'modules/' . $this->name . '/public/graphql.js',
+                'blockwishlistJs',
+                'modules/' . $this->name . '/public/wishlist.bundle.js',
                 [
                 'priority' => 190,
                 ]
             );
-
-            $this->context->controller->registerJavascript(
-                'blockwishlistVendors',
-                'modules/' . $this->name . '/public/vendors.js',
-                [
-                'priority' => 190,
-                ]
-            );
+            
         }
     }
 
@@ -283,7 +267,16 @@ class BlockWishList extends Module
      */
     public function hookDisplayAdminCustomers(array $params)
     {
+        $id_customer = $params['id_customer'];
+        $wishlists = WishList::getAllWishListsByIdCustomer($id_customer);
+
+        foreach ($wishlists as $key => $wishlist) {
+            $wishlists[$key]['shareUrl'] = $this->context->link->getModuleLink('blockwishlist', 'view', ['token' => $wishlist['token']]);
+            $wishlists[$key]['listUrl'] = $this->context->link->getModuleLink('blockwishlist', 'view', ['id_wishlist' => $wishlist['id_wishlist']]);
+        }
+
         $this->smarty->assign([
+            'wishlists' => $wishlists,
             'blockwishlist' => $this->displayName,
         ]);
 
@@ -326,6 +319,7 @@ class BlockWishList extends Module
             'addUrl' => $this->context->link->getModuleLink('blockwishlist', 'action', ['action' => 'addProductToWishlist']),
             'newWishlistCTA' => Configuration::get('blockwishlist_CreateButtonLabel', $this->context->language->id),
             'wishlistsTitlePage' => Configuration::get('blockwishlist_WishlistPageName', $this->context->language->id),
+            'logged' => $this->context->customer->isLogged(),
         ]);
 
         return $this->fetch('module:blockwishlist/views/templates/hook/displayHeader.tpl');

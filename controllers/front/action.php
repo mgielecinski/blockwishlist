@@ -24,6 +24,8 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
+        header('Content-Type: application/json');
+
         if (false === $this->context->customer->isLogged()) {
             $this->ajaxRender(
                 json_encode([
@@ -66,7 +68,7 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
 
         $idWishList = (int) $params['idWishList'];
         $id_product_attribute = (int) $params['id_product_attribute'];
-        $quantity = (int) $params['quantity'];
+        $quantity = isset($params['quantity']) ? (int) $params['quantity'] : 0;
         if (0 === $quantity) {
             $quantity = $product->minimal_quantity;
         }
@@ -117,53 +119,22 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
         return $this->ajaxRender(
             json_encode([
                 'success' => true,
-                'message' => $this->trans('Product added', [], 'Modules.Blockwishlist.Shop'),
+                'message' => $this->trans(
+                    'Product %product_name% added to the %wishlist_name% wishlist',
+                    [
+                        '%product_name%' => $product->name[$this->context->language->id],
+                        '%wishlist_name%' => $wishlist->name,
+                    ],
+                    'Modules.Blockwishlist.Shop'
+                ),
+                'wishlistLink' => $this->context->link->getModuleLink('blockwishlist', 'view', ['id_wishlist' => $wishlist->id]),
             ])
         );
     }
 
     private function createNewWishListAction($params)
     {
-        if (isset($params['name'])) {
-            if (!Validate::isGenericName($params['name'])) {
-                return $this->ajaxRender(
-                    json_encode([
-                        'success' => false,
-                        'message' => $this->trans('The list name is invalid.', [], 'Modules.Blockwishlist.Shop'),
-                        'datas' => [
-                            'name' => $params['name'],
-                        ],
-                    ])
-                );
-            }
-
-            $wishlist = new WishList();
-            $wishlist->name = $params['name'];
-            $wishlist->id_shop_group = $this->context->shop->id_shop_group;
-            $wishlist->id_customer = $this->context->customer->id;
-            $wishlist->id_shop = $this->context->shop->id;
-            $wishlist->token = $this->generateWishListToken();
-
-            if (true === $wishlist->save()) {
-                return $this->ajaxRender(
-                    json_encode([
-                        'success' => true,
-                        'message' => $this->trans('The list has been properly created', [], 'Modules.Blockwishlist.Shop'),
-                        'datas' => [
-                            'name' => $wishlist->name,
-                            'id_wishlist' => $wishlist->id,
-                        ],
-                    ])
-                );
-            }
-
-            return $this->ajaxRender(
-                json_encode([
-                    'success' => false,
-                    'message' => $this->trans('Error saving the new list', [], 'Modules.Blockwishlist.Shop'),
-                ])
-            );
-        } else {
+        if (!isset($params['name'])) {
             return $this->ajaxRender(
                 json_encode([
                     'success' => false,
@@ -171,160 +142,212 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
                 ])
             );
         }
-    }
 
-    private function renameWishListAction($params)
-    {
-        if (isset($params['idWishList'], $params['name'])) {
-            if (!Validate::isGenericName($params['name'])) {
-                return $this->ajaxRender(
-                    json_encode([
-                        'success' => false,
-                        'message' => $this->trans('The list name is invalid', [], 'Modules.Blockwishlist.Shop'),
-                        'datas' => [
-                            'name' => $params['name'],
-                            'id_whishlist' => $params['idWishList'],
-                        ],
-                    ])
-                );
-            }
+        $wishlist_name = (string) $params['name'];
 
-            $wishlist = new WishList($params['idWishList']);
-            // Exit if not owner of the wishlist
-            $this->assertWriteAccess($wishlist);
-
-            $wishlist->name = $params['name'];
-
-            if (true === $wishlist->save()) {
-                return $this->ajaxRender(
-                    json_encode([
-                        'success' => true,
-                        'message' => $this->trans('List has been renamed', [], 'Modules.Blockwishlist.Shop'),
-                    ])
-                );
-            }
-
+        if (!Validate::isGenericName($wishlist_name)) {
             return $this->ajaxRender(
                 json_encode([
                     'success' => false,
-                    'message' => $this->trans('List could not be renamed', [], 'Modules.Blockwishlist.Shop'),
+                    'message' => $this->trans('The list name is invalid.', [], 'Modules.Blockwishlist.Shop'),
                 ])
             );
         }
 
-        return $this->ajaxRenderMissingParams();
+        if ($wishlist_name == '') {
+            return $this->ajaxRender(
+                json_encode([
+                    'success' => false,
+                    'message' => $this->trans('The list name can`t be empty', [], 'Modules.Blockwishlist.Shop'),
+                ])
+            );
+        }
+
+        $wishlist = new WishList();
+        $wishlist->name = $wishlist_name;
+        $wishlist->id_shop_group = $this->context->shop->id_shop_group;
+        $wishlist->id_customer = $this->context->customer->id;
+        $wishlist->id_shop = $this->context->shop->id;
+        $wishlist->token = $this->generateWishListToken();
+
+        if (true === $wishlist->save()) {
+            return $this->ajaxRender(
+                json_encode([
+                    'success' => true,
+                    'message' => $this->trans('The list has been properly created', [], 'Modules.Blockwishlist.Shop'),
+                ])
+            );
+        }
+
+        return $this->ajaxRender(
+            json_encode([
+                'success' => false,
+                'message' => $this->trans('Error saving the new list', [], 'Modules.Blockwishlist.Shop'),
+            ])
+        );
+    }
+
+    private function renameWishListAction($params)
+    {
+        Tools::getValue('params');
+        if (!isset($params['idWishList'], $params['name'])) {
+            return $this->ajaxRenderMissingParams();
+        }
+
+        $wishlist_name = (string) $params['name'];
+
+        if (!Validate::isGenericName($wishlist_name)) {
+            return $this->ajaxRender(
+                json_encode([
+                    'success' => false,
+                    'message' => $this->trans('The list name is invalid', [], 'Modules.Blockwishlist.Shop'),
+                ])
+            );
+        }
+
+        if ($wishlist_name == '') {
+            return $this->ajaxRender(
+                json_encode([
+                    'success' => false,
+                    'message' => $this->trans('The list name can`t be empty', [], 'Modules.Blockwishlist.Shop'),
+                ])
+            );
+        }
+
+        $id_wishlist = (int) $params['idWishList'];
+        $wishlist = new WishList($id_wishlist);
+        // Exit if not owner of the wishlist
+        $this->assertWriteAccess($wishlist);
+
+        $wishlist->name = $wishlist_name;
+
+        if (true === $wishlist->save()) {
+            return $this->ajaxRender(
+                json_encode([
+                    'success' => true,
+                    'message' => $this->trans('List has been renamed', [], 'Modules.Blockwishlist.Shop'),
+                ])
+            );
+        }
+
+        return $this->ajaxRender(
+            json_encode([
+                'success' => false,
+                'message' => $this->trans('List could not be renamed', [], 'Modules.Blockwishlist.Shop'),
+            ])
+        );
     }
 
     private function deleteWishListAction($params)
     {
         if (isset($params['idWishList'])) {
-            $wishlist = new WishList($params['idWishList']);
+            return $this->ajaxRenderMissingParams();
+        }
 
-            // Exit if not owner of the wishlist
-            $this->assertWriteAccess($wishlist);
+        $wishlist = new WishList((int) $params['idWishList']);
 
-            if (true === (bool) $wishlist->delete()) {
-                return $this->ajaxRender(
-                    json_encode([
-                        'success' => true,
-                        'message' => $this->trans('List has been removed', [], 'Modules.Blockwishlist.Shop'),
-                    ])
-                );
-            }
+        // Exit if not owner of the wishlist
+        $this->assertWriteAccess($wishlist);
 
+        if (true === (bool) $wishlist->delete()) {
             return $this->ajaxRender(
                 json_encode([
-                    'success' => false,
-                    'message' => $this->trans('List deletion was unsuccessful', [], 'Modules.Blockwishlist.Shop'),
+                    'success' => true,
+                    'message' => $this->trans('List has been removed', [], 'Modules.Blockwishlist.Shop'),
                 ])
             );
         }
 
-        return $this->ajaxRenderMissingParams();
+        return $this->ajaxRender(
+            json_encode([
+                'success' => false,
+                'message' => $this->trans('List deletion was unsuccessful', [], 'Modules.Blockwishlist.Shop'),
+            ])
+        );
     }
 
     private function deleteProductFromWishListAction($params)
     {
         if (
-            isset($params['idWishList'])
-            && isset($params['id_product'])
-            && isset($params['id_product_attribute'])
+            !isset($params['idWishList']) &&
+            !isset($params['id_product']) &&
+            !isset($params['id_product_attribute'])
         ) {
-            // Exit if not owner of the wishlist
-            $this->assertWriteAccess(
-                new WishList($params['idWishList'])
-            );
+            return $this->ajaxRenderMissingParams();
+        }
 
-            $isDeleted = WishList::removeProduct(
-                $params['idWishList'],
-                $this->context->customer->id,
-                $params['id_product'],
-                $params['id_product_attribute']
-            );
+        // Exit if not owner of the wishlist
+        $this->assertWriteAccess(
+            new WishList((int) $params['idWishList'])
+        );
 
-            if (true === $isDeleted) {
-                return $this->ajaxRender(
-                    json_encode([
-                        'success' => true,
-                        'message' => $this->trans('Product successfully removed', [], 'Modules.Blockwishlist.Shop'),
-                    ])
-                );
-            }
+        $isDeleted = WishList::removeProduct(
+            $params['idWishList'],
+            $this->context->customer->id,
+            $params['id_product'],
+            $params['id_product_attribute']
+        );
 
+        if (true === $isDeleted) {
             return $this->ajaxRender(
                 json_encode([
-                    'success' => false,
-                    'message' => $this->trans('Unable to remove product from list', [], 'Modules.Blockwishlist.Shop'),
+                    'success' => true,
+                    'message' => $this->trans('Product successfully removed', [], 'Modules.Blockwishlist.Shop'),
                 ])
             );
         }
 
-        return $this->ajaxRenderMissingParams();
+        return $this->ajaxRender(
+            json_encode([
+                'success' => false,
+                'message' => $this->trans('Unable to remove product from list', [], 'Modules.Blockwishlist.Shop'),
+            ])
+        );
     }
 
     private function updateProductFromWishListAction($params)
     {
-        if (isset(
+        if (!isset(
             $params['idWishList'],
             $params['id_product'],
             $params['id_product_attribute'],
             $params['priority'],
             $params['quantity']
         )) {
-            // Exit if not owner of the wishlist
-            $this->assertWriteAccess(
-                new WishList($params['idWishList'])
-            );
+            return $this->ajaxRenderMissingParams();
+        }
 
-            $isDeleted = WishList::updateProduct(
-                $params['idWishList'],
-                $params['id_product'],
-                $params['id_product_attribute'],
-                $params['priority'],
-                $params['quantity']
-            );
+        // Exit if not owner of the wishlist
+        $this->assertWriteAccess(
+            new WishList($params['idWishList'])
+        );
 
-            if (true === $isDeleted) {
-                return $this->ajaxRender(
-                    json_encode([
-                        'success' => true,
-                        'message' => $this->trans('Product successfully updated', [], 'Modules.Blockwishlist.Shop'),
-                    ])
-                );
-            }
+        $isDeleted = WishList::updateProduct(
+            $params['idWishList'],
+            $params['id_product'],
+            $params['id_product_attribute'],
+            $params['priority'],
+            $params['quantity']
+        );
 
+        if (true === $isDeleted) {
             return $this->ajaxRender(
                 json_encode([
-                    'success' => false,
-                    'message' => $this->trans('Unable to update product from wishlist', [], 'Modules.Blockwishlist.Shop'),
+                    'success' => true,
+                    'message' => $this->trans('Product successfully updated', [], 'Modules.Blockwishlist.Shop'),
                 ])
             );
         }
 
-        return $this->ajaxRenderMissingParams();
+        return $this->ajaxRender(
+            json_encode([
+                'success' => false,
+                'message' => $this->trans('Unable to update product from wishlist', [], 'Modules.Blockwishlist.Shop'),
+            ])
+        );
     }
 
-    private function getAllWishListAction()
+    private function getAllWishListAction($params)
     {
         $infos = WishList::getAllWishListsByIdCustomer($this->context->customer->id);
         if (empty($infos)) {
@@ -345,15 +368,50 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
             $infos[$key]['listUrl'] = $this->context->link->getModuleLink('blockwishlist', 'view', ['id_wishlist' => $wishlist['id_wishlist']]);
         }
 
-        if (false === empty($infos)) {
-            return $this->ajaxRender(
-                json_encode([
-                    'wishlists' => $infos,
-                ])
-            );
+        $template = (isset($params['type']) && (string) $params['type'] === 'simple')
+            ? 'module:blockwishlist/views/templates/front/_partials/wishlist-list-simple.tpl'
+            : 'module:blockwishlist/views/templates/front/_partials/wishlist-list.tpl'
+        ;
+
+        return $this->ajaxRender(
+            json_encode([
+                'success' => true,
+                'template' => $this->context->smarty->fetch($template, ['wishlists' => $infos]),
+            ])
+        );
+    }
+
+    private function getSelectWishlistModalAction() {
+        $wishlists = WishList::getAllWishListsByIdCustomer($this->context->customer->id);
+        if (empty($wishlists)) {
+            $wishlist = new WishList();
+            $wishlist->id_shop = $this->context->shop->id;
+            $wishlist->id_shop_group = $this->context->shop->id_shop_group;
+            $wishlist->id_customer = $this->context->customer->id;
+            $wishlist->name = Configuration::get('blockwishlist_WishlistDefaultTitle', $this->context->language->id);
+            $wishlist->token = $this->generateWishListToken();
+            $wishlist->default = 1;
+            $wishlist->add();
+
+            $wishlists = WishList::getAllWishListsByIdCustomer($this->context->customer->id);
         }
 
-        return $this->ajaxRenderMissingParams();
+        foreach ($wishlists as $key => $wishlist) {
+            $wishlists[$key]['share_url'] = $this->context->link->getModuleLink('blockwishlist', 'view', ['token' => $wishlist['token']]);
+            $wishlists[$key]['list_url'] = $this->context->link->getModuleLink('blockwishlist', 'view', ['id_wishlist' => $wishlist['id_wishlist']]);
+        }
+
+        return $this->ajaxRender(
+            json_encode([
+                'success' => true,
+                'template' => $this->context->smarty->fetch('module:blockwishlist/views/templates/front/modals/add-to-wishlist.tpl', [
+                    'wishlists' => $wishlists,
+                    'addUrl' => $this->context->link->getModuleLink('blockwishlist', 'action', ['action' => 'addProductToWishlist']),
+                    'newWishlistCTA' => Configuration::get('blockwishlist_CreateButtonLabel', $this->context->language->id),
+                    'wishlistsTitlePage' => Configuration::get('blockwishlist_WishlistPageName', $this->context->language->id),
+                ]),
+            ])
+        );
     }
 
     private function generateWishListToken()
@@ -410,7 +468,7 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
 
     private function getUrlByIdWishListAction($params)
     {
-        $wishlist = new WishList($params['idWishList']);
+        $wishlist = new WishList((int) $params['idWishList']);
 
         return $this->ajaxRender(
             json_encode([
@@ -431,13 +489,12 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $this->ajaxRender(
+        return $this->ajaxRender(
             json_encode([
                 'success' => false,
                 'message' => $this->trans('You\'re not allowed to manage this list.', [], 'Modules.Blockwishlist.Shop'),
             ])
         );
-        exit;
     }
 
     /**
@@ -448,14 +505,14 @@ class BlockWishListActionModuleFrontController extends ModuleFrontController
      *
      * @return bool
      */
-    private function assertProductAttributeExists($id_product, $id_product_attribute)
+    private function assertProductAttributeExists(int $id_product, int $id_product_attribute)
     {
         return Db::getInstance()->getValue(
             'SELECT pas.`id_product_attribute` ' .
             'FROM `' . _DB_PREFIX_ . 'product_attribute` pa ' .
             'INNER JOIN `' . _DB_PREFIX_ . 'product_attribute_shop` pas ON (pas.id_product_attribute = pa.id_product_attribute) ' .
-            'WHERE pas.id_shop =' . (int) $this->context->shop->id . ' AND pa.`id_product` = ' . (int) $id_product . ' ' .
-            'AND pas.id_product_attribute = ' . (int) $id_product_attribute
+            'WHERE pas.id_shop =' . $this->context->shop->id . ' AND pa.`id_product` = ' . $id_product . ' ' .
+            'AND pas.id_product_attribute = ' . $id_product_attribute
         );
     }
 }

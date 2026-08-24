@@ -47,6 +47,9 @@ class BlockWishlistViewModuleFrontController extends ProductListingFrontControll
      */
     private $customerAccess;
 
+    /** @var string */
+    public $page_name = 'module-blockwishlist-view';
+
     public function __construct()
     {
         /** @var BlockWishList $module */
@@ -111,18 +114,8 @@ class BlockWishlistViewModuleFrontController extends ProductListingFrontControll
             return;
         }
 
-        if ($this->context->controller instanceof FrontController) {
-            $this->context->controller->registerJavascript(
-                'blockwishlistController',
-                'modules/blockwishlist/public/productslist.bundle.js',
-                [
-                'priority' => 200,
-                ]
-            );
-        }
-
         $this->doProductSearch(
-            '../../../modules/blockwishlist/views/templates/pages/products-list.tpl',
+            '../../../modules/blockwishlist/views/templates/front/view.tpl',
             [
                 'entity' => 'wishlist_product',
                 'id_wishlist' => $this->wishlist->id,
@@ -135,11 +128,7 @@ class BlockWishlistViewModuleFrontController extends ProductListingFrontControll
      */
     public function getListingLabel()
     {
-        return $this->trans(
-            'WishList: %wishlist_name%',
-            ['%wishlist_name%' => $this->wishlist->name],
-            'Modules.Blockwishlist.Shop'
-        );
+        return $this->trans('WishList: %wishlist_name%', ['%wishlist_name%' => $this->wishlist->name], 'Modules.Blockwishlist.Shop');
     }
 
     /**
@@ -177,7 +166,7 @@ class BlockWishlistViewModuleFrontController extends ProductListingFrontControll
      */
     protected function getAjaxProductSearchVariables()
     {
-        parent::getAjaxProductSearchVariables();
+        $data = parent::getAjaxProductSearchVariables();
         $context = parent::getProductSearchContext();
         $query = $this->getProductSearchQuery();
         $provider = $this->getDefaultProductSearchProvider();
@@ -253,10 +242,15 @@ class BlockWishlistViewModuleFrontController extends ProductListingFrontControll
             ]),
         ];
 
-        Hook::exec('filterProductSearch', ['searchVariables' => &$searchVariables]);
-        Hook::exec('actionProductSearchAfter', $searchVariables);
+        $data = array_merge($data, $searchVariables);
+        
+        $rendered_products = $this->context->smarty->fetch('module:blockwishlist/views/templates/front/_partials/products.tpl', ['listing' => $data]);
+        $data['rendered_products'] = $rendered_products;
 
-        return $searchVariables;
+        Hook::exec('filterProductSearch', ['searchVariables' => &$data]);
+        Hook::exec('actionProductSearchAfter', $data);
+
+        return $data;
     }
 
     /**
